@@ -1,0 +1,13 @@
+<div id="main-component">
+  <h3>Coeficient evaluator</h3>
+
+  <input #searchBox id="search-box" (keyup.enter)="evaluate(searchBox.value)"/>
+  <button (click)="evaluate(searchBox.value)">Evaluate</button>
+
+  <div>
+    <h4>
+      <span class="badge">{{score}}</span>
+    </h4>
+  </div>
+
+</div>

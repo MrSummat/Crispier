@@ -2,24 +2,22 @@ import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http'
 import { catchError, map, tap } from 'rxjs/operators';
+import { Coeficient } from './coeficient';
 
 @Injectable({
   providedIn: 'root'
 })
 export class EvaluatorService {
 
-  private evaluatorUrl = '';
+  private evaluatorUrl = 'https://crispack-stage.herokuapp.com/coeficients';
 
   constructor(private http: HttpClient) { }
 
-  evaluate(chain: string): Observable<number> {
-    
-    let params = new HttpParams().set("chain", chain);
-
-    return this.http.get<number>(this.evaluatorUrl, )
+  getCoeficients(): Observable<Coeficient[]> {
+    return this.http.get<Coeficient[]>(this.evaluatorUrl)
       .pipe(
-        tap(score => this.log("Score obtained: " + "TODO: score should be extracted here")),
-        catchError(this.handleError('evaluate', -1))
+        tap(coeficients => this.log("Coeficients obtained from server")),
+        catchError(this.handleError<Coeficient[]>('getCoeficients'))
       );
   }
 
@@ -46,5 +44,6 @@ private handleError<T> (operation = 'operation', result?: T) {
   /** Log a HeroService message with the MessageService */
   private log(message: string) {
     // this.messageService.add('HeroService: ' + message);
+    console.log(message)
   }
 }
