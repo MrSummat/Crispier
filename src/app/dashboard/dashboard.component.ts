@@ -334,14 +334,14 @@ export class DashboardComponent implements OnInit {
     //////////////////////////////////////////////////////////////////
     // Big Chart
     // Labels
-    let label = this.pre
+    let label = this.pre.toLocaleUpperCase()
     // if (this.n)
-    //   label += this.n
+      // label += this.n.toLocaleUpperCase()
     // else
     //   label += "N"
     label += "NGG"
     if (this.post)
-      label += this.post
+      label += this.post.toLocaleUpperCase()
 
     // COMMENT Workaround for labels -.-'
     let letters = label.split("")
