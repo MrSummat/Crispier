@@ -302,6 +302,8 @@ export class DashboardComponent implements OnInit {
   n: string
   post: string
 
+  evaluationDate: Date
+
   /*
   public lineChartGradientsNumbersType;
   public lineChartGradientsNumbersData:Array<any>;
@@ -395,6 +397,7 @@ export class DashboardComponent implements OnInit {
     }
     this.lineBigDashboardChartData = clone
 
+    this.evaluationDate = new Date()
     this.messenger.info("Chain evaluated")
     this.submitted = false;
   }

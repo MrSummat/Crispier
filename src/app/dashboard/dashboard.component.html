@@ -65,8 +65,8 @@
           </div>
         </div>
         <div class="card-footer">
-          <div class="stats">
-            <i class="now-ui-icons ui-2_time-alarm"></i> Last 7 days
+          <div class="stats" [hidden]="!evaluationDate">
+            <i class="now-ui-icons ui-2_time-alarm"></i>Last evaluated {{evaluationDate | date:'short'}}
           </div>
         </div>
       </div>
