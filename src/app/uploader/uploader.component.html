@@ -1,0 +1,55 @@
+<div class="panel-header">
+  <div class="header text-center">
+    <h2 class="title">File Uploader</h2>
+    <p class="category">You can download the template
+      <!-- <button class="link" type="button" (click)="downloadTemplate()">full documentation.</button> -->
+      <a href='assets/excel/crispier_template.xlsx' download>here.</a>
+    </p>
+  </div>
+</div>
+<div class="main-content">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-body">
+          <div class="places-buttons">
+            <div class="row">
+              <div class="col-md-6 ml-auto mr-auto text-center">
+                <h4 class="card-title">
+                  File selector
+                  <p class="category">Excel file format
+                    <span class="format">
+                      (csv/xls/xlsx)
+                    </span>
+                  </p>
+                </h4>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-lg-8 ml-auto mr-auto">
+                <div class="row">
+                  <div class="col-centered">
+                    <input style="display: none" id="fileUploader" type="file" (change)="fileChange($event.target.files)" accept=".csv,.xls,.xlsx">
+                    <button class="btn" type="button" id="fileSelectorButton" onclick="document.getElementById('fileUploader').click()">
+                      <span *ngIf="!file">
+                        Select file...
+                      </span>
+                      <span *ngIf="file">
+                        {{file.name}}
+                      </span>
+                    </button>
+                    <div class="row">
+                      <div class="col-centered">
+                        <button type="submit" [disabled]="!file" (click)="uploadFile()" class="btn btn-round btn-simple">Upload</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

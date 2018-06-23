@@ -1,0 +1,71 @@
+<div class="panel-header panel-header-lg">
+  <canvas baseChart id="bigDashboardChart" [datasets]="lineBigDashboardChartData" [labels]="lineBigDashboardChartLabels" [colors]="lineBigDashboardChartColors"
+    [options]="lineBigDashboardChartOptions" [chartType]="lineBigDashboardChartType" (chartHover)="chartHovered($event)" (chartClick)="chartClicked($event)"></canvas>
+</div>
+
+<div class="main-content">
+  <div class="row">
+    <div class="col-md-5">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="title">Chain Evaluator</h5>
+        </div>
+        <div class="card-body">
+          <form (ngSubmit)="chainSubmitted()" #chainForm="ngForm">
+            <div class="row">
+              <div class="col-md-12">
+                <div class="form-group">
+                  <label for="pre">Chain before NGG</label>
+                  <input type="text" class="form-control" maxlength="30" size="20" placeholder="ACGTGCAACGCACGTGCAC" required id="pre" [(ngModel)]="pre"
+                    name="pre" #name="ngModel">
+                </div>
+                <div [hidden]="name.valid || name.pristine" class="alert alert-danger">
+                  This chain is required
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-2 pr-1">
+                <div class="form-group">
+                  <label for="n">N in NGG</label>
+                  <input type="text" class="form-control" maxlength="1" size="1" placeholder="A" id="n" [(ngModel)]="n" name="n">
+                </div>
+              </div>
+              <div class="col-md-10 pl-1">
+                <div class="form-group">
+                  <label for="post">Chain after NGG</label>
+                  <input type="text" class="form-control" maxlength="10" size="7" placeholder="CGTACAGTCA" id="post" [(ngModel)]="post" name="post">
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-centered">
+                <button type="submit" class="btn btn-default" [disabled]="!chainForm.form.valid || submitted">Evaluate</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-7">
+      <div class="card card-chart">
+        <div class="card-header">
+          <h5 class="card-category">Email Statistics</h5>
+          <h4 class="card-title">24 Hours Performance</h4>
+        </div>
+        <div class="card-body">
+          <div class="chart-area">
+            <canvas baseChart id="barChartSimpleGradientsNumbers" [datasets]="lineChartGradientsNumbersData" [labels]="lineChartGradientsNumbersLabels"
+              [colors]="lineChartGradientsNumbersColors" [options]="lineChartGradientsNumbersOptions" [chartType]="lineChartGradientsNumbersType"
+              (chartHover)="chartHovered($event)" (chartClick)="chartClicked($event)"></canvas>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="stats">
+            <i class="now-ui-icons ui-2_time-alarm"></i> Last 7 days
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

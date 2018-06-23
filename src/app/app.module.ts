@@ -1,20 +1,34 @@
-import { BrowserModule } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgModule } from '@angular/core';
-import { FormsModule } from '@angular/forms'
-import { HttpClientModule } from '@angular/common/http'
+import { FormsModule } from '@angular/forms';
+import { HttpModule } from '@angular/http';
+import { HttpClientModule } from '@angular/common/http';
+import { RouterModule } from '@angular/router';
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+
+
+import { AppRoutingModule } from './app.routing';
+import { ComponentsModule } from './components/components.module';
 
 import { AppComponent } from './app.component';
-import { MainComponent } from './main/main.component';
+
+import { AdminLayoutComponent } from './layouts/admin-layout/admin-layout.component';
+import { UploaderComponent } from './uploader/uploader.component';
 
 @NgModule({
+  imports: [
+    BrowserAnimationsModule,
+    FormsModule,
+    HttpModule,
+    HttpClientModule,
+    ComponentsModule,
+    RouterModule,
+    AppRoutingModule,
+    NgbModule.forRoot()
+  ],
   declarations: [
     AppComponent,
-    MainComponent
-  ],
-  imports: [
-    BrowserModule,
-    FormsModule,
-    HttpClientModule
+    AdminLayoutComponent
   ],
   providers: [],
   bootstrap: [AppComponent]
