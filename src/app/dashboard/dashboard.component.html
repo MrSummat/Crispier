@@ -16,11 +16,14 @@
               <div class="col-md-12">
                 <div class="form-group">
                   <label for="pre">Chain before NGG</label>
-                  <input type="text" class="form-control" maxlength="30" size="20" placeholder="ACGTGCAACGCACGTGCAC" required id="pre" [(ngModel)]="pre"
-                    name="pre" #name="ngModel">
+                  <input type="text" class="form-control" minlength="20" maxlength="30" size="20" placeholder="ACGTGCAACGCACGTGCAC" required
+                    id="pre" [(ngModel)]="pre" name="pre" #preInput="ngModel">
                 </div>
-                <div [hidden]="name.valid || name.pristine" class="alert alert-danger">
+                <div [hidden]="(nInput.pristine && postInput.pristine) || preInput.value" class="alert alert-danger">
                   This chain is required
+                </div>
+                <div [hidden]="preInput.pristine || !preInput.value || preInput.value.length >= 20" class="alert alert-warning">
+                  Please introduce a chain between 20 and 30 characters
                 </div>
               </div>
             </div>
@@ -28,13 +31,14 @@
               <div class="col-md-2 pr-1">
                 <div class="form-group">
                   <label for="n">N in NGG</label>
-                  <input type="text" class="form-control" maxlength="1" size="1" placeholder="A" id="n" [(ngModel)]="n" name="n">
+                  <input type="text" class="form-control" maxlength="1" size="1" placeholder="A" id="n" [(ngModel)]="n" name="n" #nInput="ngModel">
                 </div>
               </div>
               <div class="col-md-10 pl-1">
                 <div class="form-group">
                   <label for="post">Chain after NGG</label>
-                  <input type="text" class="form-control" maxlength="10" size="7" placeholder="CGTACAGTCA" id="post" [(ngModel)]="post" name="post">
+                  <input type="text" class="form-control" maxlength="10" size="7" placeholder="CGTACAGTCA" id="post" [(ngModel)]="post" name="post"
+                    #postInput="ngModel">
                 </div>
               </div>
             </div>
