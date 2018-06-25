@@ -65,6 +65,10 @@ export class DashboardComponent implements OnInit {
   constructor(private evaluatorService: EvaluatorService, private messenger: MessageService) { }
 
   ngOnInit() {
+   this.initialize() 
+  }
+
+  initialize()  {
     this.chartColor = "#FFFFFF";
     this.canvas = document.getElementById("bigDashboardChart");
     this.ctx = this.canvas.getContext("2d");
@@ -283,7 +287,6 @@ export class DashboardComponent implements OnInit {
     }
 
     this.lineChartGradientsNumbersType = 'bar';
-
   }
 
   /////////////////////////////////////////////////////////////////
@@ -295,14 +298,6 @@ export class DashboardComponent implements OnInit {
 
   evaluationDate: Date
   evaluations: Evaluation[] = []
-
-  /*
-  public lineChartGradientsNumbersType;
-  public lineChartGradientsNumbersData:Array<any>;
-  public lineChartGradientsNumbersOptions:any;
-  public lineChartGradientsNumbersLabels:Array<any>;
-  public lineChartGradientsNumbersColors:Array<any>
-  */
 
   submitted: boolean = false;
 
