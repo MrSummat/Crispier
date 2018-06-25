@@ -1,15 +1,15 @@
 import { TestBed, inject } from '@angular/core/testing';
 
-import { CoeficientService } from './coeficient.service';
+import { EvaluatorService } from './evaluator.service';
 
 describe('CoeficientService', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
-      providers: [CoeficientService]
+      providers: [EvaluatorService]
     });
   });
 
-  it('should be created', inject([CoeficientService], (service: CoeficientService) => {
+  it('should be created', inject([EvaluatorService], (service: EvaluatorService) => {
     expect(service).toBeTruthy();
   }));
 });

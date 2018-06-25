@@ -8,7 +8,7 @@
     <div class="col-md-5">
       <div class="card">
         <div class="card-header">
-          <h5 class="title">Chain Evaluator</h5>
+          <h5 class="title" name="chain_evaluator_title">Chain Evaluator</h5>
         </div>
         <div class="card-body">
           <form (ngSubmit)="chainSubmitted()" #chainForm="ngForm">
@@ -17,9 +17,9 @@
                 <div class="form-group">
                   <label for="pre">Chain before NGG</label>
                   <input type="text" class="form-control" minlength="20" maxlength="30" pattern=".{20,30}" size="20" placeholder="ACGTGCAACGCACGTGCAC" required
-                    id="pre" [(ngModel)]="pre" name="pre" #preInput="ngModel">
+                    id="pre" [(ngModel)]="pre" name="pre_input" #preInput="ngModel">
                 </div>
-                <div [hidden]="(nInput.pristine && postInput.pristine) || preInput.value" class="alert alert-danger">
+                <div [hidden]="(nInput.pristine && postInput.pristine) || preInput.value" class="alert alert-danger" name="chain_required_warning">
                   This chain is required
                 </div>
                 <div [hidden]="preInput.pristine || !preInput.value || preInput.value.length >= 20" class="alert alert-warning">

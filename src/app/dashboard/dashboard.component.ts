@@ -1,11 +1,9 @@
 import { Component, OnInit } from '@angular/core';
 import * as Chartist from 'chartist';
 import { Evaluator } from '../model/evaluator/evaluator';
-import { CrisprScan } from '../model/evaluator/coeficient/crisprscan';
-import { CoeficientService } from '../service/coeficient.service';
-import { SCC } from '../model/evaluator/coeficient/scc';
-import { CrispRater } from '../model/evaluator/coeficient/crisprater';
+import { EvaluatorService } from '../service/evaluator.service';
 import { MessageService } from '../service/message.service';
+import { Evaluation } from '../model/evaluation';
 
 @Component({
   selector: 'app-dashboard',
@@ -64,7 +62,7 @@ export class DashboardComponent implements OnInit {
       return "rgb(" + r + ", " + g + ", " + b + ")";
     }
   }
-  constructor(private coeficientService: CoeficientService, private messenger: MessageService) { }
+  constructor(private evaluatorService: EvaluatorService, private messenger: MessageService) { }
 
   ngOnInit() {
     this.chartColor = "#FFFFFF";
@@ -78,14 +76,6 @@ export class DashboardComponent implements OnInit {
     this.gradientFill = this.ctx.createLinearGradient(0, 200, 0, 50);
     this.gradientFill.addColorStop(0, "rgba(128, 182, 244, 0)");
     this.gradientFill.addColorStop(1, "rgba(255, 255, 255, 0.24)");
-
-    // Evaluators
-
-    this.evaluators = [
-      new CrisprScan(this.coeficientService),
-      new SCC(this.coeficientService),
-      new CrispRater(this.coeficientService)
-    ]
 
     // Charts
 
@@ -216,7 +206,7 @@ export class DashboardComponent implements OnInit {
     this.lineBigDashboardChartType = 'line';
 
     // 
-    
+
     this.canvas = document.getElementById("barChartSimpleGradientsNumbers");
     this.ctx = this.canvas.getContext("2d");
 
@@ -245,7 +235,8 @@ export class DashboardComponent implements OnInit {
         pointBackgroundColor: "#2CA8FF",
       }
     ];
-    this.lineChartGradientsNumbersLabels = this.evaluators.map(evaluator => evaluator.name)
+
+    this.lineChartGradientsNumbersLabels = [] //this.evaluators.map(evaluator => evaluator.name)
     this.lineChartGradientsNumbersOptions = {
       maintainAspectRatio: false,
       legend: {
@@ -303,6 +294,7 @@ export class DashboardComponent implements OnInit {
   post: string
 
   evaluationDate: Date
+  evaluations: Evaluation[] = []
 
   /*
   public lineChartGradientsNumbersType;
@@ -314,33 +306,42 @@ export class DashboardComponent implements OnInit {
 
   submitted: boolean = false;
 
-  evaluators: Evaluator[]
-
   chainSubmitted() {
     this.submitted = true;
 
-    let scores: number[] = []
-    let evaluations: [Map<number, number>] = [new Map()]
-    this.evaluators.forEach((evaluator: Evaluator, i: number) => {
-      [scores[i], evaluations[i]] = evaluator.evaluate(this.pre, this.n, this.post);
-    })
+    this.evaluatorService.evaluate(this.pre, this.n, this.post).subscribe(
+      evaluations => { this.evaluations = evaluations; this.updateCharts(); }
+    );
 
+    // setTimeout(() => {
+    //   console.log(this.evaluations)
+    // }, 1000);
+
+
+  }
+
+  updateCharts() {
+    //Labels
+    // COMMENT Workaround for labels -.-'
+    let labels = this.evaluations.map(evaluation => evaluation.evaluator)
+    this.lineChartGradientsNumbersLabels.length = 0;
+    labels.forEach(label => {
+      this.lineChartGradientsNumbersLabels.push(label);
+    });
+    
     // Workaround to refresh the data
     // COMMENT if there were more than one
     // let clone = JSON.parse(JSON.stringify(this.lineChartGradientsNumbersData));
     let tmp = this.lineChartGradientsNumbersData[0]
-    tmp.label = "Score"
-    tmp.data = scores
+    tmp.data =  this.evaluations.map(evaluation => evaluation.score)
     this.lineChartGradientsNumbersData = [tmp]
 
+    
+    
     //////////////////////////////////////////////////////////////////
     // Big Chart
     // Labels
     let label = this.pre.toLocaleUpperCase()
-    // if (this.n)
-      // label += this.n.toLocaleUpperCase()
-    // else
-    //   label += "N"
     label += "NGG"
     if (this.post)
       label += this.post.toLocaleUpperCase()
@@ -348,53 +349,64 @@ export class DashboardComponent implements OnInit {
     // COMMENT Workaround for labels -.-'
     let letters = label.split("")
     this.lineBigDashboardChartLabels.length = 0;
-    for (let i = 0; i < letters.length; i++)
-      this.lineBigDashboardChartLabels.push(letters[i]);
+
+    letters.forEach(letter => {
+      this.lineBigDashboardChartLabels.push(letter);
+    });
 
     // Data
     // Eliminating evaluation of positions not introduced by the user
-    for (let map of evaluations)
-      for (let position of map.keys()) {
-        if (position < 0 && Math.abs(position) > this.pre.length)
-          map.delete(position);
-        if (position == 0 && !this.n)
-          map.delete(position);
-        if (position > 0 && this.post && position > this.post.length)
-          map.delete(position);
-      }
+    // TODO: checking if this is useless, erase if so
+    // for (let map of evaluations)
+    //   for (let position of map.keys()) {
+    //     if (position < 0 && Math.abs(position) > this.pre.length)
+    //       map.delete(position);
+    //     if (position == 0 && !this.n)
+    //       map.delete(position);
+    //     if (position > 0 && this.post && position > this.post.length)
+    //       map.delete(position);
+    //   }
 
-    // Map to Array
+    // Data from Map to Array
     let chartData: [number[]] = [[]]
     let j = 0
-    for (let map of evaluations) {
-      let data: number[] = []
-      let i = 0
 
-      //pre
-      for (let index = -this.pre.length; index < 0; index++) {
-        data[i++] = map.has(index) ? map.get(index) : 0;
-      }
+    this.evaluations.map(evaluation => evaluation.assessment)
+      .forEach((assessment: Map<number, number>) => {
+        let data: number[] = []
+        let i = 0
 
-      // NGG
-      data[i++] = map.has(0) ? map.get(0) : 0;
-      data[i++] = 0;
-      data[i++] = 0;
-
-      //post
-      if (this.post)
-        for (let index = 1; index <= this.post.length; index++) {
-          data[i++] = map.has(index) ? map.get(index) : 0;
+        let map = new Map<number, number>()
+        for (let index = 0; index < 10; index++) {
+          map.set(i, i)
         }
-      
-      chartData[j++] = data;
-    }
+
+        //pre
+        for (let index = -this.pre.length; index < 0; index++) {
+          data[i++] = assessment.has(index) ? assessment.get(index) : 0;
+        }
+
+        // NGG
+        data[i++] = assessment.has(0) ? assessment.get(0) : 0;
+        data[i++] = 0;
+        data[i++] = 0;
+
+        //post
+        if (this.post)
+          for (let index = 1; index <= this.post.length; index++) {
+            data[i++] = assessment.has(index) ? assessment.get(index) : 0;
+          }
+
+        chartData[j++] = data;
+      });
+
 
     // COMMENT Workaround for data :/
     let clone = JSON.parse(JSON.stringify(this.lineBigDashboardChartData));
-    for (let i in this.evaluators) {
-      clone[i].label = this.evaluators[i].name
+    this.evaluations.forEach((evaluation: Evaluation, i: number) => {
+      clone[i].label = evaluation.evaluator
       clone[i].data = chartData[i]
-    }
+    });
     this.lineBigDashboardChartData = clone
 
     this.evaluationDate = new Date()
