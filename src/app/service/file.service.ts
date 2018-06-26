@@ -8,7 +8,7 @@ import { environment } from 'environments/environment';
 @Injectable({
   providedIn: 'root'
 })
-export class FileService {
+export class UpdateService {
 
   path: string = "/contribute";
 

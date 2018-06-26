@@ -4,6 +4,8 @@ import { Evaluator } from '../model/evaluator/evaluator';
 import { EvaluatorService } from '../service/evaluator.service';
 import { MessageService } from '../service/message.service';
 import { Evaluation } from '../model/evaluation';
+import { FileParser } from '../util/file.reader';
+import { catchError } from 'rxjs/operators';
 
 @Component({
   selector: 'app-evaluator',
@@ -317,12 +319,45 @@ export class EvaluatorComponent implements OnInit {
   chainSubmitted() {
     this.submitted = true;
     if (this.fileEvaluator) {
-
+      this.evaluateFile()
     } else {
       this.evaluatorService.evaluate(this.pre, this.n, this.post).subscribe(
         evaluations => { this.evaluations = evaluations; this.updateCharts(); }
       );
     }
+  }
+
+  async evaluateFile() {
+    try {
+      let json = await FileParser.parseExcel(this.file);
+      this.onExcelParsed(json)
+    } catch (e) {
+      this.onExcelParsingError(e);
+    }
+    this.submitted = false;
+  }
+
+  onExcelParsed(json: {}[]): void {
+    console.log(json)
+    json.forEach(row => {
+      let name: string = row['Name']
+      let chain: string = row['Chain']
+      let pam: number = row['PAM']
+
+      let pre = chain.substr(0, pam-1)
+      let n = chain.substr(pam-1, 1)
+      let gg = chain.substr(pam, 2)
+      let post = chain.substring(pam+2)
+      
+      new RegExp('')
+
+      console.log("pre: " + pre + " - N: "+n+" - GG: "+gg+" - post: "+post )
+    })
+    this.messenger.info("File evaluated");
+  }
+
+  onExcelParsingError(reason: any) {
+    this.messenger.error("An error occurred while reading the file", "File error")
   }
 
 

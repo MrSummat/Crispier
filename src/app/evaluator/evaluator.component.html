@@ -55,14 +55,17 @@
                 <div class="col-md-12">
                   <div class="form-group">
                     <label for="pre">Chain before NGG</label>
-                    <input type="text" class="form-control" minlength="20" maxlength="30" pattern=".{20,30}" size="20" placeholder="ACGTGCAACGCACGTGCAC"
+                    <input type="text" class="form-control" minlength="20" maxlength="30" pattern="[acgtACGT]{20,30}" size="20" placeholder="ACGTGCAACGCACGTGCAC"
                       required id="pre" [(ngModel)]="pre" name="pre_input" #preInput="ngModel">
                   </div>
-                  <div [hidden]="(nInput.pristine && postInput.pristine) || preInput.value" class="alert alert-danger" name="chain_required_warning">
+                  <div [hidden]="(!nInput.value && !postInput.value) || preInput.value" class="alert alert-danger" name="chain_required_warning">
                     This chain is required
                   </div>
-                  <div [hidden]="preInput.pristine || !preInput.value || preInput.value.length >= 20" class="alert alert-warning">
+                  <div [hidden]="!preInput.value || preInput.value.length >= 20" class="alert alert-warning">
                     Please introduce a chain between 20 and 30 characters
+                  </div>
+                  <div [hidden]="!preInput.value || preInput.valid || preInput.value.length < 20" class="alert alert-warning">
+                    Please insert only ACGT characters (case insensitive)
                   </div>
                 </div>
               </div>
@@ -70,14 +73,21 @@
                 <div class="col-sm-3 col-md-4 col-xl-3 px-3">
                   <div class="form-group">
                     <label for="n">N in NGG</label>
-                    <input type="text" class="form-control" maxlength="1" size="1" placeholder="A" id="n" [(ngModel)]="n" name="n" #nInput="ngModel">
+                    <input type="text" class="form-control" maxlength="1" size="1" pattern="[acgtACGT]" placeholder="A" id="n" [(ngModel)]="n"
+                      name="n" #nInput="ngModel">
                   </div>
                 </div>
                 <div class="col-sm-9 col-md-8 col-xl-9 px-3">
                   <div class="form-group">
                     <label for="post">Chain after NGG</label>
-                    <input type="text" class="form-control" maxlength="10" size="7" placeholder="CGTACAGTCA" id="post" [(ngModel)]="post" name="post"
-                      #postInput="ngModel">
+                    <input type="text" class="form-control" maxlength="10" size="7" pattern="[acgtACGT]{0,10}" placeholder="CGTACAGTCA" id="post"
+                      [(ngModel)]="post" name="post" #postInput="ngModel">
+                  </div>
+                </div>
+                <div class="col-md-12">
+                  <div [hidden]="(!nInput.value && !postInput.value) || (nInput.valid && postInput.valid)"
+                    class="alert alert-warning">
+                    Please insert only ACGT characters (case insensitive)
                   </div>
                 </div>
               </div>

@@ -16,6 +16,7 @@ import { ToastrModule } from 'ngx-toastr';
 import { UploaderComponent } from '../../uploader/uploader.component';
 import { MessageService } from '../../service/message.service';
 import { DashboardComponent } from '../../dashboard/dashboard.component';
+import { FileParser } from '../../util/file.reader';
 
 @NgModule({
   imports: [
@@ -38,7 +39,8 @@ import { DashboardComponent } from '../../dashboard/dashboard.component';
     NotificationsComponent,
   ],
   providers: [
-      MessageService
+      MessageService,
+      FileParser
   ]
 })
 

@@ -31,7 +31,6 @@ export class EvaluatorService {
         .pipe(
           map((data) => new Evaluation(data['name'], data['score'], data['assessment'])),
           // tap(() => this.log("Coeficients obtained from server: " + this.path)),
-          // tap((result) => console.log(result)),
           catchError(this.handleError<Evaluation>('EvaluatorService: evaluate'))
         )
     )));
