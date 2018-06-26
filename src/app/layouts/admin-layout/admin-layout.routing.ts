@@ -1,6 +1,6 @@
 import { Routes } from '@angular/router';
 
-import { DashboardComponent } from '../../dashboard/dashboard.component';
+import { EvaluatorComponent } from '../../evaluator/evaluator.component';
 import { UserProfileComponent } from '../../user-profile/user-profile.component';
 import { TableListComponent } from '../../table-list/table-list.component';
 import { TypographyComponent } from '../../typography/typography.component';
@@ -10,7 +10,7 @@ import { NotificationsComponent } from '../../notifications/notifications.compon
 import { UploaderComponent } from '../../uploader/uploader.component';
 
 export const AdminLayoutRoutes: Routes = [
-    { path: 'evaluator',      component: DashboardComponent },
+    { path: 'evaluator',      component: EvaluatorComponent },
     { path: 'contribute',     component: UploaderComponent},
     { path: 'user-profile',   component: UserProfileComponent },
     { path: 'table-list',     component: TableListComponent },

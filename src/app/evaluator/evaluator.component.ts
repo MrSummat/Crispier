@@ -6,11 +6,11 @@ import { MessageService } from '../service/message.service';
 import { Evaluation } from '../model/evaluation';
 
 @Component({
-  selector: 'app-dashboard',
-  templateUrl: './dashboard.component.html',
-  styleUrls: ['./dashboard.component.css']
+  selector: 'app-evaluator',
+  templateUrl: './evaluator.component.html',
+  styleUrls: ['./evaluator.component.css']
 })
-export class DashboardComponent implements OnInit {
+export class EvaluatorComponent implements OnInit {
   public lineBigDashboardChartType;
   public gradientStroke;
   public chartColor;
@@ -52,7 +52,7 @@ export class DashboardComponent implements OnInit {
     console.log(e);
   }
   public hexToRGB(hex, alpha) {
-    var r = parseInt(hex.slice(1, 3), 16),
+    let r = parseInt(hex.slice(1, 3), 16),
       g = parseInt(hex.slice(3, 5), 16),
       b = parseInt(hex.slice(5, 7), 16);
 
