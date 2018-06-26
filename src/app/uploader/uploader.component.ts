@@ -12,7 +12,7 @@ export class UploaderComponent implements OnInit {
   file: File = null
   allowedFileFormats: Set<string> = new Set<string>();
 
-  constructor(private messager: MessageService, private uploader: FileService) {
+  constructor(private messenger: MessageService, private uploader: FileService) {
     this.allowedFileFormats.add("text/csv");
     this.allowedFileFormats.add("application/vnd.ms-excel");
     this.allowedFileFormats.add("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
@@ -28,16 +28,16 @@ export class UploaderComponent implements OnInit {
         this.file = file;
       else {
         this.file = null;
-        this.messager.error("Please select a file with an allowed format", "File format error");
+        this.messenger.error("Please select a file with an allowed format", "File format error");
       }
   }
 
   uploadFile() {
     this.uploader.postFile(this.file).subscribe(data => {
       this.file = null
-      this.messager.success("File uploaded successfully");
+      this.messenger.success("File uploaded successfully");
     }, error => {
-      this.messager.error("An error occurred while uploading the file");
+      this.messenger.error("An error occurred while uploading the file");
     });
   }
 

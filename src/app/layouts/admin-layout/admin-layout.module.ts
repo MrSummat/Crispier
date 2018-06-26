@@ -15,6 +15,7 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { ToastrModule } from 'ngx-toastr';
 import { UploaderComponent } from '../../uploader/uploader.component';
 import { MessageService } from '../../service/message.service';
+import { DashboardComponent } from '../../dashboard/dashboard.component';
 
 @NgModule({
   imports: [
@@ -27,6 +28,7 @@ import { MessageService } from '../../service/message.service';
   ],
   declarations: [
     EvaluatorComponent,
+    DashboardComponent,
     UploaderComponent,
     UserProfileComponent,
     TableListComponent,

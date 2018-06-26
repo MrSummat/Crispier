@@ -30,7 +30,7 @@
                 <div class="row">
                   <div class="col-centered">
                     <input style="display: none" id="fileUploader" type="file" (change)="fileChange($event.target.files)" accept=".csv,.xls,.xlsx">
-                    <button class="btn" type="button" id="fileSelectorButton" onclick="document.getElementById('fileUploader').click()">
+                    <button class="btn btn-round btn-simple" type="button" id="fileSelectorButton" onclick="document.getElementById('fileUploader').click()">
                       <span *ngIf="!file">
                         Select file...
                       </span>
@@ -40,7 +40,7 @@
                     </button>
                     <div class="row">
                       <div class="col-centered">
-                        <button type="submit" [disabled]="!file" (click)="uploadFile()" class="btn btn-round btn-simple">Upload</button>
+                        <button type="submit" [disabled]="!file" (click)="uploadFile()" class="btn">Upload</button>
                       </div>
                     </div>
                   </div>

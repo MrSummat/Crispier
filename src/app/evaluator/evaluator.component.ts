@@ -11,6 +11,7 @@ import { Evaluation } from '../model/evaluation';
   styleUrls: ['./evaluator.component.css']
 })
 export class EvaluatorComponent implements OnInit {
+
   public lineBigDashboardChartType;
   public gradientStroke;
   public chartColor;
@@ -62,13 +63,17 @@ export class EvaluatorComponent implements OnInit {
       return "rgb(" + r + ", " + g + ", " + b + ")";
     }
   }
-  constructor(private evaluatorService: EvaluatorService, private messenger: MessageService) { }
-
-  ngOnInit() {
-   this.initialize() 
+  constructor(private evaluatorService: EvaluatorService, private messenger: MessageService) {
+    this.allowedFileFormats.add("text/csv");
+    this.allowedFileFormats.add("application/vnd.ms-excel");
+    this.allowedFileFormats.add("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
   }
 
-  initialize()  {
+  ngOnInit() {
+    this.initialize()
+  }
+
+  initialize() {
     this.chartColor = "#FFFFFF";
     this.canvas = document.getElementById("bigDashboardChart");
     this.ctx = this.canvas.getContext("2d");
@@ -299,20 +304,38 @@ export class EvaluatorComponent implements OnInit {
   evaluationDate: Date
   evaluations: Evaluation[] = []
 
+  public fileEvaluator: boolean = true
+  file: File = null
+  allowedFileFormats: Set<string> = new Set<string>();
+
   submitted: boolean = false;
+
+  toggleEvaluator() {
+    this.fileEvaluator = !this.fileEvaluator
+  }
 
   chainSubmitted() {
     this.submitted = true;
+    if (this.fileEvaluator) {
 
-    this.evaluatorService.evaluate(this.pre, this.n, this.post).subscribe(
-      evaluations => { this.evaluations = evaluations; this.updateCharts(); }
-    );
+    } else {
+      this.evaluatorService.evaluate(this.pre, this.n, this.post).subscribe(
+        evaluations => { this.evaluations = evaluations; this.updateCharts(); }
+      );
+    }
+  }
 
-    // setTimeout(() => {
-    //   console.log(this.evaluations)
-    // }, 1000);
 
 
+  fileChange(files: FileList) {
+    let file = files.item(0);
+    if (file)
+      if (this.allowedFileFormats.has(file.type))
+        this.file = file;
+      else {
+        this.file = null;
+        this.messenger.error("Please select a file with an allowed format", "File format error");
+      }
   }
 
   updateCharts() {
@@ -323,16 +346,16 @@ export class EvaluatorComponent implements OnInit {
     labels.forEach(label => {
       this.lineChartGradientsNumbersLabels.push(label);
     });
-    
+
     // Workaround to refresh the data
     // COMMENT if there were more than one
     // let clone = JSON.parse(JSON.stringify(this.lineChartGradientsNumbersData));
     let tmp = this.lineChartGradientsNumbersData[0]
-    tmp.data =  this.evaluations.map(evaluation => evaluation.score)
+    tmp.data = this.evaluations.map(evaluation => evaluation.score)
     this.lineChartGradientsNumbersData = [tmp]
 
-    
-    
+
+
     //////////////////////////////////////////////////////////////////
     // Big Chart
     // Labels
@@ -348,19 +371,6 @@ export class EvaluatorComponent implements OnInit {
     letters.forEach(letter => {
       this.lineBigDashboardChartLabels.push(letter);
     });
-
-    // Data
-    // Eliminating evaluation of positions not introduced by the user
-    // TODO: checking if this is useless, erase if so
-    // for (let map of evaluations)
-    //   for (let position of map.keys()) {
-    //     if (position < 0 && Math.abs(position) > this.pre.length)
-    //       map.delete(position);
-    //     if (position == 0 && !this.n)
-    //       map.delete(position);
-    //     if (position > 0 && this.post && position > this.post.length)
-    //       map.delete(position);
-    //   }
 
     // Data from Map to Array
     let chartData: [number[]] = [[]]

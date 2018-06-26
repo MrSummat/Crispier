@@ -8,9 +8,11 @@ import { IconsComponent } from '../../icons/icons.component';
 import { MapsComponent } from '../../maps/maps.component';
 import { NotificationsComponent } from '../../notifications/notifications.component';
 import { UploaderComponent } from '../../uploader/uploader.component';
+import { DashboardComponent } from '../../dashboard/dashboard.component';
 
 export const AdminLayoutRoutes: Routes = [
     { path: 'evaluator',      component: EvaluatorComponent },
+    { path: 'dashboard',      component: DashboardComponent },
     { path: 'contribute',     component: UploaderComponent},
     { path: 'user-profile',   component: UserProfileComponent },
     { path: 'table-list',     component: TableListComponent },
