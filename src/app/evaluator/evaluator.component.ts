@@ -196,25 +196,25 @@ export class EvaluatorComponent implements OnInit {
   private rowDataIsOK(row: number, name: string, chain: string, pam: number): boolean {
     // Checking existence
     if (!name) {
-      this.addError(row, "Cannot find value for name (Have you included headers?)"))
+      this.addError(row, "Cannot find value for name (Have you included headers?)");
       return false
     } if (!chain) {
-      this.addError(row, "Cannot find value for chain (Have you included headers?)"))
+      this.addError(row, "Cannot find value for chain (Have you included headers?)")
       return false
     } if (!pam) {
-      this.addError(row, "Cannot find value for pam (Have you included headers?)"))
+      this.addError(row, "Cannot find value for pam (Have you included headers?)")
       return false
     }
 
     // Checking for type validity
     if (!isString(name)) {
-      this.addError(row, "Name is not a string"))
+      this.addError(row, "Name is not a string")
       return false
     } if (!isString(chain)) {
-      this.addError(row, "Chain is not a string"))
+      this.addError(row, "Chain is not a string")
       return false
     } if (!isNumber(pam)) {
-      this.addError(row, "PAM is not a number"))
+      this.addError(row, "PAM is not a number")
       return false
     }
 
@@ -225,13 +225,13 @@ export class EvaluatorComponent implements OnInit {
 
     // Checking fields' constraints
     if (/.*[^acgtACGT].*/.test(pre.concat(n, gg, post))) {
-      this.addError(row, "The chain contains unvalid characters"))
+      this.addError(row, "The chain contains unvalid characters")
       return false
     } if (pre.length < 20) {
-      this.addError(row, "The chain is too short. At least 20 amino acids + PAM are required"))
+      this.addError(row, "The chain is too short. At least 20 amino acids + PAM are required")
       return false
     } if (gg.toLocaleUpperCase() != "GG") {
-      this.addError(row, "The PAM position indicated doesn't match the chain"))
+      this.addError(row, "The PAM position indicated doesn't match the chain")
       return false
     }
 
