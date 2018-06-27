@@ -15,7 +15,7 @@
           </button>
         </div>
         <div class="card-body">
-          <form (ngSubmit)="chainSubmitted()" #chainForm="ngForm">
+          <form (ngSubmit)="chainFormSubmitted()" #chainForm="ngForm">
             <div *ngIf="fileEvaluator; then thenBlock else elseBlock"></div>
             <ng-template #thenBlock>
               <div class="places-buttons">
@@ -36,7 +36,7 @@
                     <div class="row">
                       <div class="col-centered">
                         <input style="display: none" id="fileUploader" type="file" (change)="fileChange($event.target.files)" accept=".csv,.xls,.xlsx">
-                        <button class="btn btn-round btn-simple" type="button" id="fileSelectorButton" onclick="document.getElementById('fileUploader').click()">
+                        <button class="btn btn-round btn-simple" type="button" id="fileSelectorButton" [disabled]="submitted" onclick="document.getElementById('fileUploader').click()">
                           <span *ngIf="!file">
                             Select file...
                           </span>
@@ -164,6 +164,54 @@
               <i class="now-ui-icons ui-1_simple-remove"></i>
             </button>
             <span class="pl-2">Clear sequences</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row" *ngIf="sequenceErrors.length != 0">
+    <div class="col-sm-12">
+      <div class="card">
+        <div class="card-header">
+          <!-- <h5 class="card-category">All Persons List</h5> -->
+          <h4 class="card-title"> Errors during evaluation</h4>
+        </div>
+        <div class="card-body">
+          <!-- <div class="table-responsive"> -->
+          <table class="table">
+            <thead class=" text-primary">
+              <th class="text-left">
+                File
+              </th>
+              <th class="text-center">
+                Row
+              </th>
+              <th>
+                Error
+              </th>
+            </thead>
+            <tbody *ngFor="let error of sequenceErrors">
+              <tr>
+                <td class="text-left">
+                  {{error.fileName}}
+                </td>
+                <td class="text-center">
+                  {{error.row}}
+                </td>
+                <td>
+                  {{error.error}}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <!-- </div> -->
+        </div>
+        <div class="card-footer">
+          <div class="stats">
+            <button type="button" class="btn btn-sm btn-round btn-default btn-simple btn-icon" (click)="clearErrors()" ngbButton>
+              <i class="now-ui-icons ui-1_simple-remove"></i>
+            </button>
+            <span class="pl-2">Clear errors</span>
           </div>
         </div>
       </div>

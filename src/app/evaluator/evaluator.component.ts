@@ -1,11 +1,12 @@
 import { Component, OnInit } from '@angular/core';
-import * as Chartist from 'chartist';
 import { EvaluatorService } from '../service/evaluator.service';
 import { MessageService } from '../service/message.service';
 import { Evaluation } from '../model/evaluation';
 import { FileParser } from '../util/file.reader';
-import { catchError } from 'rxjs/operators';
 import { Sequence } from '../model/chain';
+import { isString } from 'util';
+import { isNumber } from '@ng-bootstrap/ng-bootstrap/util/util';
+import { SequenceError } from '../model/sequenceError';
 
 @Component({
   selector: 'app-evaluator',
@@ -25,35 +26,26 @@ export class EvaluatorComponent implements OnInit {
   public lineBigDashboardChartLabels: Array<any>;
   public lineBigDashboardChartColors: Array<any>
 
-  public gradientChartOptionsConfiguration: any;
-  public gradientChartOptionsConfigurationWithNumbersAndGrid: any;
-
-  public lineChartType;
-  public lineChartData: Array<any>;
-  public lineChartOptions: any;
-  public lineChartLabels: Array<any>;
-  public lineChartColors: Array<any>
-
-  public lineChartWithNumbersAndGridType;
-  public lineChartWithNumbersAndGridData: Array<any>;
-  public lineChartWithNumbersAndGridOptions: any;
-  public lineChartWithNumbersAndGridLabels: Array<any>;
-  public lineChartWithNumbersAndGridColors: Array<any>
-
   public lineChartGradientsNumbersType;
   public lineChartGradientsNumbersData: Array<any>;
   public lineChartGradientsNumbersOptions: any;
   public lineChartGradientsNumbersLabels: Array<any>;
   public lineChartGradientsNumbersColors: Array<any>
 
-  // events
-  public chartClicked(e: any): void {
-    console.log(e);
+  constructor(private evaluatorService: EvaluatorService, private messenger: MessageService) {
+    this.allowedFileFormats.add("text/csv");
+    this.allowedFileFormats.add("application/vnd.ms-excel");
+    this.allowedFileFormats.add("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
   }
 
-  public chartHovered(e: any): void {
-    console.log(e);
+  ngOnInit() {
+    this.initialize()
   }
+
+  // Charts
+  public chartClicked(e: any): void { }
+  public chartHovered(e: any): void { }
+
   public hexToRGB(hex, alpha) {
     let r = parseInt(hex.slice(1, 3), 16),
       g = parseInt(hex.slice(3, 5), 16),
@@ -65,17 +57,280 @@ export class EvaluatorComponent implements OnInit {
       return "rgb(" + r + ", " + g + ", " + b + ")";
     }
   }
-  constructor(private evaluatorService: EvaluatorService, private messenger: MessageService) {
-    this.allowedFileFormats.add("text/csv");
-    this.allowedFileFormats.add("application/vnd.ms-excel");
-    this.allowedFileFormats.add("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
+  // Form
+  fileEvaluator: boolean
+  submitted: boolean = false;
+  //    Text mode
+  pre: string
+  n: string
+  post: string
+  //    File mode
+  file: File = null
+  allowedFileFormats: Set<string> = new Set<string>();
+
+  //    Sequences
+  evaluationDate: Date
+  sequences: Sequence[] = []
+  shownSequence: Sequence
+  sequenceErrors: SequenceError[] = []
+
+  toggleEvaluator() {
+    this.fileEvaluator = !this.fileEvaluator
   }
 
-  ngOnInit() {
-    this.initialize()
+  onSequenceSelect(sequence: Sequence) {
+    this.shownSequence = sequence
+    this.updateCharts()
   }
 
-  initialize() {
+  fileChange(files: FileList) {
+    let file = files.item(0);
+    if (file)
+      if (this.allowedFileFormats.has(file.type))
+        this.file = file;
+      else {
+        this.file = null;
+        this.messenger.error("Please select a file with an allowed format", "File format error");
+      }
+  }
+
+  clearSequences() {
+    this.shownSequence = undefined
+    this.sequences = []
+
+    // Bar chart
+    //    Labels
+    this.lineChartGradientsNumbersLabels.length = 0;
+
+    //    Data
+    let tmp = this.lineChartGradientsNumbersData[0]
+    tmp.data = undefined
+    this.lineChartGradientsNumbersData = [tmp]
+
+    // Big Chart
+    //    Labels
+    this.lineBigDashboardChartLabels.length = 0;
+
+    //    Data
+    let clone: any[] = JSON.parse(JSON.stringify(this.lineBigDashboardChartData));
+    for (let i in clone) {
+      clone[i].label = undefined
+      clone[i].data = []
+    }
+    this.lineBigDashboardChartData = clone
+  }
+
+  clearErrors() {
+    this.sequenceErrors.length = 0
+  }
+
+  chainFormSubmitted() {
+    this.submitted = true;
+    if (this.fileEvaluator) {
+      this.evaluateFile()
+    } else {
+      this.evaluateText();
+    }
+  }
+
+  private evaluateText() {
+    let name = "chain" + (this.sequences.length + 1);
+
+    let chain = this.pre;
+    if (this.n)
+      chain += this.n;
+    if (this.post)
+      chain += this.post;
+    chain = chain.toLocaleUpperCase();
+
+    let pam = this.pre.length + 1;
+
+    this.evaluatorService.evaluate(this.pre, this.n, this.post).subscribe(evaluations => {
+      let newSequence = new Sequence(name, chain, pam, evaluations);
+      this.shownSequence = newSequence;
+      this.sequences.push(newSequence);
+
+      this.updateCharts();
+      this.evaluationDate = new Date();
+      this.messenger.info("Chain evaluated");
+    });
+  }
+
+  private async evaluateFile() {
+    try {
+      let json = await FileParser.parseExcel(this.file);
+      this.onExcelParsed(json)
+    } catch (e) {
+      this.onExcelParsingError(e);
+    }
+    this.submitted = false;
+  }
+
+  private onExcelParsed(json: {}[]): void {
+    for (const row of json) {
+      let name: string = row['Name']
+      let chain: string = row['Chain']
+      let pam: number = row['PAM']
+
+      if (!this.rowDataIsOK(row['__rowNum__'], name, chain, pam))
+        continue;
+
+      let pre = chain.substr(0, pam - 1)
+      let n = chain.substr(pam - 1, 1)
+      let post = chain.substring(pam + 2)
+
+      this.evaluatorService.evaluate(pre, n, post).subscribe(
+        evaluations => {
+          let sequence = new Sequence(name, chain, pam, evaluations);
+          this.sequences.push(sequence);
+          this.shownSequence = sequence
+          this.updateCharts()
+        }
+      );
+    }
+    this.evaluationDate = new Date();
+    this.messenger.info("Evaluating file");
+  }
+
+  private rowDataIsOK(row: number, name: string, chain: string, pam: number): boolean {
+    // Checking existence
+    if (!name) {
+      this.addError(row, "Cannot find value for name (Have you included headers?)"))
+      return false
+    } if (!chain) {
+      this.addError(row, "Cannot find value for chain (Have you included headers?)"))
+      return false
+    } if (!pam) {
+      this.addError(row, "Cannot find value for pam (Have you included headers?)"))
+      return false
+    }
+
+    // Checking for type validity
+    if (!isString(name)) {
+      this.addError(row, "Name is not a string"))
+      return false
+    } if (!isString(chain)) {
+      this.addError(row, "Chain is not a string"))
+      return false
+    } if (!isNumber(pam)) {
+      this.addError(row, "PAM is not a number"))
+      return false
+    }
+
+    let pre = chain.substr(0, pam - 1)
+    let n = chain.substr(pam - 1, 1)
+    let gg = chain.substr(pam, 2)
+    let post = chain.substring(pam + 2)
+
+    // Checking fields' constraints
+    if (/.*[^acgtACGT].*/.test(pre.concat(n, gg, post))) {
+      this.addError(row, "The chain contains unvalid characters"))
+      return false
+    } if (pre.length < 20) {
+      this.addError(row, "The chain is too short. At least 20 amino acids + PAM are required"))
+      return false
+    } if (gg.toLocaleUpperCase() != "GG") {
+      this.addError(row, "The PAM position indicated doesn't match the chain"))
+      return false
+    }
+
+    return true;
+  }
+
+  addError(row: number, error: string) {
+    this.sequenceErrors.push(new SequenceError(this.file.name, row, error));
+  }
+
+  private onExcelParsingError(reason: any) {
+    this.messenger.error("An error occurred while reading the file", "File error")
+  }
+
+  private updateCharts() {
+    let pre = this.shownSequence.chain.substr(0, this.shownSequence.pam - 1)
+    let post = this.shownSequence.chain.substring(this.shownSequence.pam + 2)
+
+    //Labels
+    // COMMENT Workaround for labels -.-'
+    let labels = this.shownSequence.evaluations.map(evaluation => evaluation.evaluator)
+    this.lineChartGradientsNumbersLabels.length = 0;
+    labels.forEach(label => {
+      this.lineChartGradientsNumbersLabels.push(label);
+    });
+
+    // Workaround to refresh the data
+    // COMMENT if there were more than one
+    // let clone = JSON.parse(JSON.stringify(this.lineChartGradientsNumbersData));
+    let tmp = this.lineChartGradientsNumbersData[0]
+    tmp.data = this.shownSequence.evaluations.map(evaluation => evaluation.score)
+    this.lineChartGradientsNumbersData = [tmp]
+
+
+
+    //////////////////////////////////////////////////////////////////
+    // Big Chart
+    // Labels
+    let label = pre.toLocaleUpperCase()
+    label += "NGG"
+    if (post)
+      label += post.toLocaleUpperCase()
+
+    // COMMENT Workaround for labels -.-'
+    let letters = label.split("")
+    this.lineBigDashboardChartLabels.length = 0;
+
+    letters.forEach(letter => {
+      this.lineBigDashboardChartLabels.push(letter);
+    });
+
+    // Data from Map to Array
+    let chartData: [number[]] = [[]]
+    let j = 0
+
+    this.shownSequence.evaluations.map(evaluation => evaluation.assessment)
+      .forEach((assessment: Map<number, number>) => {
+        let data: number[] = []
+        let i = 0
+
+        let map = new Map<number, number>()
+        for (let index = 0; index < 10; index++) {
+          map.set(i, i)
+        }
+
+        //pre
+        for (let index = -pre.length; index < 0; index++) {
+          data[i++] = assessment.has(index) ? assessment.get(index) : 0;
+        }
+
+        // NGG
+        data[i++] = assessment.has(0) ? assessment.get(0) : 0;
+        data[i++] = 0;
+        data[i++] = 0;
+
+        //post
+        if (post)
+          for (let index = 1; index <= post.length; index++) {
+            data[i++] = assessment.has(index) ? assessment.get(index) : 0;
+          }
+
+        chartData[j++] = data;
+      });
+
+
+    // COMMENT Workaround for data :/
+    let clone = JSON.parse(JSON.stringify(this.lineBigDashboardChartData));
+    this.shownSequence.evaluations.forEach((evaluation: Evaluation, i: number) => {
+      clone[i].label = evaluation.evaluator
+      clone[i].data = chartData[i]
+    });
+    this.lineBigDashboardChartData = clone
+
+    this.submitted = false;
+  }
+
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+  private initialize() {
     this.chartColor = "#FFFFFF";
     this.canvas = document.getElementById("bigDashboardChart");
     this.ctx = this.canvas.getContext("2d");
@@ -294,222 +549,6 @@ export class EvaluatorComponent implements OnInit {
     }
 
     this.lineChartGradientsNumbersType = 'bar';
-  }
-
-  /////////////////////////////////////////////////////////////////
-  // FORM
-
-  pre: string
-  n: string
-  post: string
-
-  evaluationDate: Date
-  sequences: Sequence[] = []
-  shownSequence: Sequence
-
-  public fileEvaluator: boolean
-  file: File = null
-  allowedFileFormats: Set<string> = new Set<string>();
-
-  submitted: boolean = false;
-
-  toggleEvaluator() {
-    this.fileEvaluator = !this.fileEvaluator
-  }
-
-  onSequenceSelect(sequence: Sequence) {
-    this.shownSequence = sequence
-    this.updateCharts()
-  }
-
-  clearSequences() {
-
-    this.shownSequence = undefined
-    this.sequences = []
-
-    // Bar chart
-    //    Labels
-    this.lineChartGradientsNumbersLabels.length = 0;
-
-    //    Data
-    let tmp = this.lineChartGradientsNumbersData[0]
-    tmp.data = undefined
-    this.lineChartGradientsNumbersData = [tmp]
-
-    // Big Chart
-    //    Labels
-    this.lineBigDashboardChartLabels.length = 0;
-
-    //    Data
-    let clone: any[] = JSON.parse(JSON.stringify(this.lineBigDashboardChartData));
-    for (let i in clone) {
-      clone[i].label = undefined
-      clone[i].data = []
-    }
-    this.lineBigDashboardChartData = clone
-  }
-
-  chainSubmitted() {
-    this.submitted = true;
-    if (this.fileEvaluator) {
-      this.evaluateFile()
-    } else {
-      let name = "chain" + (this.sequences.length + 1)
-      let chain = this.pre
-      chain += this.n ? this.n : ""
-      chain += this.post ? this.post : ""
-      chain = chain.toLocaleUpperCase()
-      let pam = this.pre.length + 1
-      this.evaluatorService.evaluate(this.pre, this.n, this.post).subscribe(
-        evaluations => {
-          let newSequence = new Sequence(name, chain, pam, evaluations);
-          this.shownSequence = newSequence;
-          this.sequences.push(newSequence);
-          this.updateCharts();
-          this.evaluationDate = new Date();
-          this.messenger.info("Chain evaluated");
-        }
-      );
-    }
-  }
-
-  async evaluateFile() {
-    try {
-      let json = await FileParser.parseExcel(this.file);
-      this.onExcelParsed(json)
-    } catch (e) {
-      this.onExcelParsingError(e);
-    }
-    this.submitted = false;
-  }
-
-  onExcelParsed(json: {}[]): void {
-    for (const row of json) {
-      let name: string = row['Name']
-      let chain: string = row['Chain']
-      let pam: number = row['PAM']
-
-      let pre = chain.substr(0, pam - 1)
-      let n = chain.substr(pam - 1, 1)
-      let gg = chain.substr(pam, 2)
-      let post = chain.substring(pam + 2)
-
-      // TODO: check input -> reminder: row['sth'] will be indefined if sth is not a property/method/etc
-      if (gg.toLocaleUpperCase() != "GG")
-        this.messenger.error("The PAM position indicated doesn't match", "File parsing error");
-
-      // If parsing went OK
-      this.evaluatorService.evaluate(pre, n, post).subscribe(
-        evaluations => {
-          let sequence = new Sequence(name, chain, pam, evaluations);
-          this.sequences.push(sequence);
-          this.shownSequence = sequence
-          this.updateCharts()
-        }
-      );
-    }
-    this.evaluationDate = new Date();
-    this.messenger.info("Evaluating file");
-  }
-
-  onExcelParsingError(reason: any) {
-    this.messenger.error("An error occurred while reading the file", "File error")
-    console.log(reason)
-  }
-
-
-
-  fileChange(files: FileList) {
-    let file = files.item(0);
-    if (file)
-      if (this.allowedFileFormats.has(file.type))
-        this.file = file;
-      else {
-        this.file = null;
-        this.messenger.error("Please select a file with an allowed format", "File format error");
-      }
-  }
-
-  updateCharts() {
-    let pre = this.shownSequence.chain.substr(0, this.shownSequence.pam - 1)
-    let post = this.shownSequence.chain.substring(this.shownSequence.pam + 2)
-
-    //Labels
-    // COMMENT Workaround for labels -.-'
-    let labels = this.shownSequence.evaluations.map(evaluation => evaluation.evaluator)
-    this.lineChartGradientsNumbersLabels.length = 0;
-    labels.forEach(label => {
-      this.lineChartGradientsNumbersLabels.push(label);
-    });
-
-    // Workaround to refresh the data
-    // COMMENT if there were more than one
-    // let clone = JSON.parse(JSON.stringify(this.lineChartGradientsNumbersData));
-    let tmp = this.lineChartGradientsNumbersData[0]
-    tmp.data = this.shownSequence.evaluations.map(evaluation => evaluation.score)
-    this.lineChartGradientsNumbersData = [tmp]
-
-
-
-    //////////////////////////////////////////////////////////////////
-    // Big Chart
-    // Labels
-    let label = pre.toLocaleUpperCase()
-    label += "NGG"
-    if (post)
-      label += post.toLocaleUpperCase()
-
-    // COMMENT Workaround for labels -.-'
-    let letters = label.split("")
-    this.lineBigDashboardChartLabels.length = 0;
-
-    letters.forEach(letter => {
-      this.lineBigDashboardChartLabels.push(letter);
-    });
-
-    // Data from Map to Array
-    let chartData: [number[]] = [[]]
-    let j = 0
-
-    this.shownSequence.evaluations.map(evaluation => evaluation.assessment)
-      .forEach((assessment: Map<number, number>) => {
-        let data: number[] = []
-        let i = 0
-
-        let map = new Map<number, number>()
-        for (let index = 0; index < 10; index++) {
-          map.set(i, i)
-        }
-
-        //pre
-        for (let index = -pre.length; index < 0; index++) {
-          data[i++] = assessment.has(index) ? assessment.get(index) : 0;
-        }
-
-        // NGG
-        data[i++] = assessment.has(0) ? assessment.get(0) : 0;
-        data[i++] = 0;
-        data[i++] = 0;
-
-        //post
-        if (post)
-          for (let index = 1; index <= post.length; index++) {
-            data[i++] = assessment.has(index) ? assessment.get(index) : 0;
-          }
-
-        chartData[j++] = data;
-      });
-
-
-    // COMMENT Workaround for data :/
-    let clone = JSON.parse(JSON.stringify(this.lineBigDashboardChartData));
-    this.shownSequence.evaluations.forEach((evaluation: Evaluation, i: number) => {
-      clone[i].label = evaluation.evaluator
-      clone[i].data = chartData[i]
-    });
-    this.lineBigDashboardChartData = clone
-
-    this.submitted = false;
   }
 
 }
