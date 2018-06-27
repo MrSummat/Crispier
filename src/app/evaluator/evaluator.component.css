@@ -1,3 +1,8 @@
 span.format {
     text-transform: lowercase;
 }
+
+.selected {
+    background-color: rgb(60, 62, 63) !important;
+    color: white;
+  }

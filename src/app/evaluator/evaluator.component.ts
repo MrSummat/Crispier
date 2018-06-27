@@ -1,11 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import * as Chartist from 'chartist';
-import { Evaluator } from '../model/evaluator/evaluator';
 import { EvaluatorService } from '../service/evaluator.service';
 import { MessageService } from '../service/message.service';
 import { Evaluation } from '../model/evaluation';
 import { FileParser } from '../util/file.reader';
 import { catchError } from 'rxjs/operators';
+import { Sequence } from '../model/chain';
 
 @Component({
   selector: 'app-evaluator',
@@ -304,9 +304,10 @@ export class EvaluatorComponent implements OnInit {
   post: string
 
   evaluationDate: Date
-  evaluations: Evaluation[] = []
+  sequences: Sequence[] = []
+  shownSequence: Sequence
 
-  public fileEvaluator: boolean = true
+  public fileEvaluator: boolean
   file: File = null
   allowedFileFormats: Set<string> = new Set<string>();
 
@@ -316,13 +317,58 @@ export class EvaluatorComponent implements OnInit {
     this.fileEvaluator = !this.fileEvaluator
   }
 
+  onSequenceSelect(sequence: Sequence) {
+    this.shownSequence = sequence
+    this.updateCharts()
+  }
+
+  clearSequences() {
+
+    this.shownSequence = undefined
+    this.sequences = []
+
+    // Bar chart
+    //    Labels
+    this.lineChartGradientsNumbersLabels.length = 0;
+
+    //    Data
+    let tmp = this.lineChartGradientsNumbersData[0]
+    tmp.data = undefined
+    this.lineChartGradientsNumbersData = [tmp]
+
+    // Big Chart
+    //    Labels
+    this.lineBigDashboardChartLabels.length = 0;
+
+    //    Data
+    let clone: any[] = JSON.parse(JSON.stringify(this.lineBigDashboardChartData));
+    for (let i in clone) {
+      clone[i].label = undefined
+      clone[i].data = []
+    }
+    this.lineBigDashboardChartData = clone
+  }
+
   chainSubmitted() {
     this.submitted = true;
     if (this.fileEvaluator) {
       this.evaluateFile()
     } else {
+      let name = "chain" + (this.sequences.length + 1)
+      let chain = this.pre
+      chain += this.n ? this.n : ""
+      chain += this.post ? this.post : ""
+      chain = chain.toLocaleUpperCase()
+      let pam = this.pre.length + 1
       this.evaluatorService.evaluate(this.pre, this.n, this.post).subscribe(
-        evaluations => { this.evaluations = evaluations; this.updateCharts(); }
+        evaluations => {
+          let newSequence = new Sequence(name, chain, pam, evaluations);
+          this.shownSequence = newSequence;
+          this.sequences.push(newSequence);
+          this.updateCharts();
+          this.evaluationDate = new Date();
+          this.messenger.info("Chain evaluated");
+        }
       );
     }
   }
@@ -338,26 +384,37 @@ export class EvaluatorComponent implements OnInit {
   }
 
   onExcelParsed(json: {}[]): void {
-    console.log(json)
-    json.forEach(row => {
+    for (const row of json) {
       let name: string = row['Name']
       let chain: string = row['Chain']
       let pam: number = row['PAM']
 
-      let pre = chain.substr(0, pam-1)
-      let n = chain.substr(pam-1, 1)
+      let pre = chain.substr(0, pam - 1)
+      let n = chain.substr(pam - 1, 1)
       let gg = chain.substr(pam, 2)
-      let post = chain.substring(pam+2)
-      
-      new RegExp('')
+      let post = chain.substring(pam + 2)
 
-      console.log("pre: " + pre + " - N: "+n+" - GG: "+gg+" - post: "+post )
-    })
-    this.messenger.info("File evaluated");
+      // TODO: check input -> reminder: row['sth'] will be indefined if sth is not a property/method/etc
+      if (gg.toLocaleUpperCase() != "GG")
+        this.messenger.error("The PAM position indicated doesn't match", "File parsing error");
+
+      // If parsing went OK
+      this.evaluatorService.evaluate(pre, n, post).subscribe(
+        evaluations => {
+          let sequence = new Sequence(name, chain, pam, evaluations);
+          this.sequences.push(sequence);
+          this.shownSequence = sequence
+          this.updateCharts()
+        }
+      );
+    }
+    this.evaluationDate = new Date();
+    this.messenger.info("Evaluating file");
   }
 
   onExcelParsingError(reason: any) {
     this.messenger.error("An error occurred while reading the file", "File error")
+    console.log(reason)
   }
 
 
@@ -374,9 +431,12 @@ export class EvaluatorComponent implements OnInit {
   }
 
   updateCharts() {
+    let pre = this.shownSequence.chain.substr(0, this.shownSequence.pam - 1)
+    let post = this.shownSequence.chain.substring(this.shownSequence.pam + 2)
+
     //Labels
     // COMMENT Workaround for labels -.-'
-    let labels = this.evaluations.map(evaluation => evaluation.evaluator)
+    let labels = this.shownSequence.evaluations.map(evaluation => evaluation.evaluator)
     this.lineChartGradientsNumbersLabels.length = 0;
     labels.forEach(label => {
       this.lineChartGradientsNumbersLabels.push(label);
@@ -386,7 +446,7 @@ export class EvaluatorComponent implements OnInit {
     // COMMENT if there were more than one
     // let clone = JSON.parse(JSON.stringify(this.lineChartGradientsNumbersData));
     let tmp = this.lineChartGradientsNumbersData[0]
-    tmp.data = this.evaluations.map(evaluation => evaluation.score)
+    tmp.data = this.shownSequence.evaluations.map(evaluation => evaluation.score)
     this.lineChartGradientsNumbersData = [tmp]
 
 
@@ -394,10 +454,10 @@ export class EvaluatorComponent implements OnInit {
     //////////////////////////////////////////////////////////////////
     // Big Chart
     // Labels
-    let label = this.pre.toLocaleUpperCase()
+    let label = pre.toLocaleUpperCase()
     label += "NGG"
-    if (this.post)
-      label += this.post.toLocaleUpperCase()
+    if (post)
+      label += post.toLocaleUpperCase()
 
     // COMMENT Workaround for labels -.-'
     let letters = label.split("")
@@ -411,7 +471,7 @@ export class EvaluatorComponent implements OnInit {
     let chartData: [number[]] = [[]]
     let j = 0
 
-    this.evaluations.map(evaluation => evaluation.assessment)
+    this.shownSequence.evaluations.map(evaluation => evaluation.assessment)
       .forEach((assessment: Map<number, number>) => {
         let data: number[] = []
         let i = 0
@@ -422,7 +482,7 @@ export class EvaluatorComponent implements OnInit {
         }
 
         //pre
-        for (let index = -this.pre.length; index < 0; index++) {
+        for (let index = -pre.length; index < 0; index++) {
           data[i++] = assessment.has(index) ? assessment.get(index) : 0;
         }
 
@@ -432,8 +492,8 @@ export class EvaluatorComponent implements OnInit {
         data[i++] = 0;
 
         //post
-        if (this.post)
-          for (let index = 1; index <= this.post.length; index++) {
+        if (post)
+          for (let index = 1; index <= post.length; index++) {
             data[i++] = assessment.has(index) ? assessment.get(index) : 0;
           }
 
@@ -443,14 +503,12 @@ export class EvaluatorComponent implements OnInit {
 
     // COMMENT Workaround for data :/
     let clone = JSON.parse(JSON.stringify(this.lineBigDashboardChartData));
-    this.evaluations.forEach((evaluation: Evaluation, i: number) => {
+    this.shownSequence.evaluations.forEach((evaluation: Evaluation, i: number) => {
       clone[i].label = evaluation.evaluator
       clone[i].data = chartData[i]
     });
     this.lineBigDashboardChartData = clone
 
-    this.evaluationDate = new Date()
-    this.messenger.info("Chain evaluated")
     this.submitted = false;
   }
 

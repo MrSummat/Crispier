@@ -85,8 +85,7 @@
                   </div>
                 </div>
                 <div class="col-md-12">
-                  <div [hidden]="(!nInput.value && !postInput.value) || (nInput.valid && postInput.valid)"
-                    class="alert alert-warning">
+                  <div [hidden]="(!nInput.value && !postInput.value) || (nInput.valid && postInput.valid)" class="alert alert-warning">
                     Please insert only ACGT characters (case insensitive)
                   </div>
                 </div>
@@ -108,7 +107,7 @@
           <h3 class="card-title pl-3">Evaluation results</h3>
         </div>
         <div class="card-body">
-          <div class="chart-area">
+          <div class="chart-area pl-2 pr-3">
             <canvas baseChart id="barChartSimpleGradientsNumbers" [datasets]="lineChartGradientsNumbersData" [labels]="lineChartGradientsNumbersLabels"
               [colors]="lineChartGradientsNumbersColors" [options]="lineChartGradientsNumbersOptions" [chartType]="lineChartGradientsNumbersType"
               (chartHover)="chartHovered($event)" (chartClick)="chartClicked($event)"></canvas>
@@ -117,6 +116,54 @@
         <div class="card-footer">
           <div class="stats" [hidden]="!evaluationDate">
             <i class="now-ui-icons ui-2_time-alarm"></i>Last evaluated {{evaluationDate | date:'short'}}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row" *ngIf="sequences.length != 0">
+    <div class="col-sm-12">
+      <div class="card">
+        <div class="card-header">
+          <!-- <h5 class="card-category">All Persons List</h5> -->
+          <h4 class="card-title"> Chains evaluated</h4>
+        </div>
+        <div class="card-body">
+          <!-- <div class="table-responsive"> -->
+          <table class="table">
+            <thead class=" text-primary">
+              <th class="text-center">
+                Name
+              </th>
+              <th class="text-center">
+                Sequence
+              </th>
+              <th class="text-center">
+                PAM
+              </th>
+            </thead>
+            <tbody *ngFor="let sequence of sequences">
+              <tr (click)="onSequenceSelect(sequence)" [class.selected]="sequence === shownSequence">
+                <td class="text-center">
+                  {{sequence.name}}
+                </td>
+                <td class="text-center">
+                  {{sequence.chain}}
+                </td>
+                <td class="text-center">
+                  {{sequence.pam}}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <!-- </div> -->
+        </div>
+        <div class="card-footer">
+          <div class="stats">
+            <button type="button" class="btn btn-sm btn-round btn-default btn-simple btn-icon" (click)="clearSequences()" ngbButton>
+              <i class="now-ui-icons ui-1_simple-remove"></i>
+            </button>
+            <span class="pl-2">Clear sequences</span>
           </div>
         </div>
       </div>

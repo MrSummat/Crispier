@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, of, forkJoin } from 'rxjs';
-import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http'
-import { catchError, map, tap, mergeMap, combineAll } from 'rxjs/operators';
+import { HttpClient, HttpParams } from '@angular/common/http'
+import { catchError, map, tap, combineAll, concatMap } from 'rxjs/operators';
 import { environment } from 'environments/environment';
 import { Evaluation } from '../model/evaluation';
 
@@ -26,7 +26,7 @@ export class EvaluatorService {
     params = n ? params.append("n", n) : params
     params = post ? params.append("post", post) : params
 
-    let a = of(...this.evaluators).pipe(mergeMap(evaluator => forkJoin(
+    let a = of(...this.evaluators).pipe(concatMap(evaluator => forkJoin(
       this.http.get<Evaluation>(environment.apiUrl + this.path + evaluator, { params: params })
         .pipe(
           map((data) => new Evaluation(data['name'], data['score'], data['assessment'])),
