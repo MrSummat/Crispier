@@ -7,6 +7,7 @@ import { Sequence } from '../model/chain';
 import { isString } from 'util';
 import { isNumber } from '@ng-bootstrap/ng-bootstrap/util/util';
 import { SequenceError } from '../model/sequenceError';
+import { finalize } from 'rxjs/operators';
 
 @Component({
   selector: 'app-evaluator',
@@ -127,6 +128,7 @@ export class EvaluatorComponent implements OnInit {
 
   chainFormSubmitted() {
     this.submitted = true;
+    console.log("submitted: " + this.submitted)
     if (this.fileEvaluator) {
       this.evaluateFile()
     } else {
@@ -146,15 +148,17 @@ export class EvaluatorComponent implements OnInit {
 
     let pam = this.pre.length + 1;
 
-    this.evaluatorService.evaluate(this.pre, this.n, this.post).subscribe(evaluations => {
-      let newSequence = new Sequence(name, chain, pam, evaluations);
-      this.shownSequence = newSequence;
-      this.sequences.push(newSequence);
+    this.evaluatorService.evaluate(this.pre, this.n, this.post)
+      .pipe(finalize(() => this.submitted = false))
+      .subscribe(evaluations => {
+        let newSequence = new Sequence(name, chain, pam, evaluations);
+        this.shownSequence = newSequence;
+        this.sequences.push(newSequence);
 
-      this.updateCharts();
-      this.evaluationDate = new Date();
-      this.messenger.info("Chain evaluated");
-    });
+        this.updateCharts();
+        this.evaluationDate = new Date();
+        this.messenger.info("Chain evaluated");
+      });
   }
 
   private async evaluateFile() {
@@ -164,7 +168,6 @@ export class EvaluatorComponent implements OnInit {
     } catch (e) {
       this.onExcelParsingError(e);
     }
-    this.submitted = false;
   }
 
   private onExcelParsed(json: {}[]): void {
@@ -180,16 +183,18 @@ export class EvaluatorComponent implements OnInit {
       let n = chain.substr(pam - 1, 1)
       let post = chain.substring(pam + 2)
 
-      this.evaluatorService.evaluate(pre, n, post).subscribe(
+      this.evaluatorService.evaluate(pre, n, post)
+      .pipe(finalize(()=> this.submitted = false))
+      .subscribe(
         evaluations => {
           let sequence = new Sequence(name, chain, pam, evaluations);
           this.sequences.push(sequence);
           this.shownSequence = sequence
           this.updateCharts()
+          this.evaluationDate = new Date();
         }
       );
-    }
-    this.evaluationDate = new Date();
+    }    
     this.messenger.info("Evaluating file");
   }
 
@@ -324,8 +329,6 @@ export class EvaluatorComponent implements OnInit {
       clone[i].data = chartData[i]
     });
     this.lineBigDashboardChartData = clone
-
-    this.submitted = false;
   }
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////
