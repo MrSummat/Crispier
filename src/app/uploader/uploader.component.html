@@ -40,12 +40,19 @@
                     </button>
                     <div class="row">
                       <div class="col-centered">
-                        <button type="submit" [disabled]="!file" (click)="uploadFile()" class="btn">Upload</button>
+                        <button type="submit" [disabled]="!file || submitted" (click)="uploadFile()" class="btn">Upload</button>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+        <div class="card-footer">
+          <div class="row">
+            <div class="stats col-centered" [hidden]="!submitted">
+              <i class="fa fa-spinner fa-pulse fa-2x fa-fw"></i>Analysing file on server...
             </div>
           </div>
         </div>
@@ -78,11 +85,11 @@
                   {{error.fileName}}
                 </td>
                 <td class="text-center">
-                  {{error.row < 0 ? "" : error.row}}
-                </td>
-                <td>
-                  {{error.error}}
-                </td>
+                  {{error.row
+                  < 0 ? "" : error.row}} </td>
+                    <td>
+                      {{error.error}}
+                    </td>
               </tr>
             </tbody>
           </table>
