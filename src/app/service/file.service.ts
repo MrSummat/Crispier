@@ -3,6 +3,7 @@ import { Observable, of } from 'rxjs';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http'
 import { catchError, map, tap } from 'rxjs/operators';
 import { environment } from 'environments/environment';
+import { SequenceError } from '../model/sequenceError';
 
 @Injectable({
   providedIn: 'root'
@@ -13,15 +14,28 @@ export class UpdateService {
 
   constructor(private http: HttpClient) { }
 
-  postFile(fileToUpload: File): Observable<boolean> {
+  postFile(fileToUpload: File): Observable<SequenceError[]> {
     const endpoint = environment.apiUrl + "/contribute";
 
     const formData: FormData = new FormData();
     formData.append('contribution', fileToUpload, fileToUpload.name);
 
     return this.http
-      .post(endpoint, formData, { reportProgress: true }).pipe(
-        map(() => { return true; }),
+      .post<SequenceError[]>(endpoint, formData).pipe(
+        map((data) => {
+          let result: string = data['result'];
+          let fileErrors: Object[] = data['errors'];
+
+          if (result.toLocaleLowerCase() == "success")
+            return [];
+
+          let errors: SequenceError[] = [];
+          for (const error of fileErrors) {
+            errors.push(new SequenceError(fileToUpload.name, error["row"], error["error"]))
+          }
+
+          return errors;
+        }),
         catchError(this.handleError('postFile'))
       );
   }

@@ -18,6 +18,8 @@
     width: 260px;
     left: 0;
     z-index: 1030;
+    // COLOR
+    @include sidebar-color($dark-gray);
 
     .sidebar-wrapper{
         position: relative;
@@ -339,7 +341,7 @@
   height: 260px;
   padding-top: 80px;
   padding-bottom: 45px;
-  @include panel-gradient($black-color);
+  @include panel-gradient($dark-gray);
   position: relative;
   overflow: hidden;
 

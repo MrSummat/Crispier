@@ -3,7 +3,7 @@
     <h2 class="title">File Uploader</h2>
     <p class="category">You can download the template
       <!-- <button class="link" type="button" (click)="downloadTemplate()">full documentation.</button> -->
-      <a href='assets/excel/crispier_template.xlsx' download>here.</a>
+      <a href='assets/excel/crispier_contribution_template.xlsx' download>here.</a>
     </p>
   </div>
 </div>
@@ -47,6 +47,53 @@
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row" *ngIf="fileErrors.length != 0">
+    <div class="col-sm-12">
+      <div class="card">
+        <div class="card-header">
+          <h4 class="card-title"> File errors</h4>
+        </div>
+        <div class="card-body">
+          <!-- <div class="table-responsive"> -->
+          <table class="table">
+            <thead class=" text-primary">
+              <th class="text-left">
+                File
+              </th>
+              <th class="text-center">
+                Row
+              </th>
+              <th>
+                Error
+              </th>
+            </thead>
+            <tbody *ngFor="let error of fileErrors">
+              <tr>
+                <td class="text-left">
+                  {{error.fileName}}
+                </td>
+                <td class="text-center">
+                  {{error.row < 0 ? "" : error.row}}
+                </td>
+                <td>
+                  {{error.error}}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+          <!-- </div> -->
+        </div>
+        <div class="card-footer">
+          <div class="stats">
+            <button type="button" class="btn btn-sm btn-round btn-default btn-simple btn-icon" (click)="clearErrors()" ngbButton>
+              <i class="now-ui-icons ui-1_simple-remove"></i>
+            </button>
+            <span class="pl-2">Clear errors</span>
           </div>
         </div>
       </div>
