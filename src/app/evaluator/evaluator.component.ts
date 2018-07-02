@@ -128,7 +128,6 @@ export class EvaluatorComponent implements OnInit {
 
   chainFormSubmitted() {
     this.submitted = true;
-    console.log("submitted: " + this.submitted)
     if (this.fileEvaluator) {
       this.evaluateFile()
     } else {
@@ -184,17 +183,17 @@ export class EvaluatorComponent implements OnInit {
       let post = chain.substring(pam + 2)
 
       this.evaluatorService.evaluate(pre, n, post)
-      .pipe(finalize(()=> this.submitted = false))
-      .subscribe(
-        evaluations => {
-          let sequence = new Sequence(name, chain, pam, evaluations);
-          this.sequences.push(sequence);
-          this.shownSequence = sequence
-          this.updateCharts()
-          this.evaluationDate = new Date();
-        }
-      );
-    }    
+        .pipe(finalize(() => this.submitted = false))
+        .subscribe(
+          evaluations => {
+            let sequence = new Sequence(name, chain, pam, evaluations);
+            this.sequences.push(sequence);
+            this.shownSequence = sequence
+            this.updateCharts()
+            this.evaluationDate = new Date();
+          }
+        );
+    }
     this.messenger.info("Evaluating file");
   }
 
@@ -271,7 +270,6 @@ export class EvaluatorComponent implements OnInit {
     this.lineChartGradientsNumbersData = [tmp]
 
 
-
     //////////////////////////////////////////////////////////////////
     // Big Chart
     // Labels
@@ -292,35 +290,26 @@ export class EvaluatorComponent implements OnInit {
     let chartData: [number[]] = [[]]
     let j = 0
 
-    this.shownSequence.evaluations.map(evaluation => evaluation.assessment)
-      .forEach((assessment: Map<number, number>) => {
-        let data: number[] = []
-        let i = 0
+    for (const evaluation of this.shownSequence.evaluations) {
+      let data: number[] = []
+      let i = 0
 
-        let map = new Map<number, number>()
-        for (let index = 0; index < 10; index++) {
-          map.set(i, i)
-        }
+      //pre
+      for (let index = -pre.length; index < 0; index++)
+        data[i++] = evaluation.assessment.has(index) ? evaluation.assessment.get(index) : 0;
 
-        //pre
-        for (let index = -pre.length; index < 0; index++) {
-          data[i++] = assessment.has(index) ? assessment.get(index) : 0;
-        }
+      // NGG
+      data[i++] = evaluation.assessment.has(0) ? evaluation.assessment.get(0) : 0;
+      data[i++] = 0;
+      data[i++] = 0;
 
-        // NGG
-        data[i++] = assessment.has(0) ? assessment.get(0) : 0;
-        data[i++] = 0;
-        data[i++] = 0;
+      //post
+      if (post)
+        for (let index = 1; index <= post.length; index++)
+          data[i++] = evaluation.assessment.has(index) ? evaluation.assessment.get(index) : 0;
 
-        //post
-        if (post)
-          for (let index = 1; index <= post.length; index++) {
-            data[i++] = assessment.has(index) ? assessment.get(index) : 0;
-          }
-
-        chartData[j++] = data;
-      });
-
+      chartData[j++] = data;
+    }
 
     // COMMENT Workaround for data :/
     let clone = JSON.parse(JSON.stringify(this.lineBigDashboardChartData));
@@ -526,6 +515,11 @@ export class EvaluatorComponent implements OnInit {
           gridLines: {
             zeroLineColor: "transparent",
             drawBorder: false
+          },
+          ticks: {
+            min: 0,
+            stepValue: 0.1,
+            max: 1,
           }
         }],
         xAxes: [{
