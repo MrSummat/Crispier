@@ -188,7 +188,8 @@ export class EvaluatorComponent implements OnInit {
           evaluations => {
             let sequence = new Sequence(name, chain, pam, evaluations);
             this.sequences.push(sequence);
-            this.shownSequence = sequence
+            if (!this.shownSequence)
+              this.shownSequence = sequence
             this.updateCharts()
             this.evaluationDate = new Date();
           }
@@ -379,25 +380,25 @@ export class EvaluatorComponent implements OnInit {
         backgroundColor: this.gradientFill,
         borderColor: this.chartColor,
         pointBorderColor: this.chartColor,
-        pointBackgroundColor: "#2c2c2c",
-        pointHoverBackgroundColor: "#2c2c2c",
+        pointBackgroundColor: "#19ffb2",
+        pointHoverBackgroundColor: "#19ffb2",
         pointHoverBorderColor: this.chartColor,
       },
       { // dark grey
-        backgroundColor: 'rgba(77,83,96,0.2)',
+        backgroundColor: this.gradientFill,
         borderColor: this.chartColor,
-        pointBackgroundColor: 'rgba(77,83,96,1)',
-        pointBorderColor: '#fff',
-        pointHoverBackgroundColor: '#fff',
-        pointHoverBorderColor: 'rgba(77,83,96,1)'
+        pointBackgroundColor: '#ffb219',
+        pointBorderColor: this.chartColor,
+        pointHoverBackgroundColor: '#ffb219',
+        pointHoverBorderColor: this.chartColor
       },
       { // grey
-        backgroundColor: 'rgba(148,159,177,0.2)',
+        backgroundColor: this.gradientFill,
         borderColor: this.chartColor,
-        pointBackgroundColor: 'rgba(148,159,177,1)',
-        pointBorderColor: '#fff',
-        pointHoverBackgroundColor: '#fff',
-        pointHoverBorderColor: 'rgba(148,159,177,0.8)'
+        pointBackgroundColor: '#ff19b6',
+        pointBorderColor: this.chartColor,
+        pointHoverBackgroundColor: '#ff19b6',
+        pointHoverBorderColor: this.chartColor
       }
     ];
 
@@ -469,8 +470,16 @@ export class EvaluatorComponent implements OnInit {
     this.ctx = this.canvas.getContext("2d");
 
     this.gradientFill = this.ctx.createLinearGradient(0, 170, 0, 50);
-    this.gradientFill.addColorStop(0, "rgba(128, 182, 244, 0)");
-    this.gradientFill.addColorStop(1, this.hexToRGB('#2CA8FF', 0.6));
+    this.gradientFill.addColorStop(0, "rgba(127, 244, 205, 0)");
+    this.gradientFill.addColorStop(1, this.hexToRGB('#19ffb2', 0.6));
+
+    let gradientFillB = this.ctx.createLinearGradient(0, 170, 0, 50);
+    gradientFillB.addColorStop(0, "rgba(255, 178, 25, 0)");
+    gradientFillB.addColorStop(1, this.hexToRGB('#ffb219', 0.6));
+
+    let gradientFillC = this.ctx.createLinearGradient(0, 170, 0, 50);
+    gradientFillC.addColorStop(0, "rgba(255, 135, 216, 0)");
+    gradientFillC.addColorStop(1, this.hexToRGB('#ff19b6', 0.6));
 
 
     this.lineChartGradientsNumbersData = [
@@ -487,10 +496,11 @@ export class EvaluatorComponent implements OnInit {
     ];
     this.lineChartGradientsNumbersColors = [
       {
-        backgroundColor: this.gradientFill,
-        borderColor: "#2CA8FF",
-        pointBorderColor: "#FFF",
-        pointBackgroundColor: "#2CA8FF",
+        backgroundColor: [this.gradientFill, gradientFillB, gradientFillC],
+        hoverBackgroundColor: [this.gradientFill, gradientFillB, gradientFillC],
+        borderColor: ["#19ffb2", "#ffb219", "#ff19b6"],
+        pointBorderColor: ["#19ffb2", "#ffb219", "#ff19b6"],
+        pointBackgroundColor: ["#19ffb2", "#ffb219", "#ff19b6"]
       }
     ];
 
@@ -507,7 +517,8 @@ export class EvaluatorComponent implements OnInit {
         position: "nearest",
         xPadding: 10,
         yPadding: 10,
-        caretPadding: 10
+        caretPadding: 10,
+        displayColors: false
       },
       responsive: 1,
       scales: {
@@ -517,7 +528,7 @@ export class EvaluatorComponent implements OnInit {
             drawBorder: false
           },
           ticks: {
-            min: 0,
+            beginAtZero: true,
             stepValue: 0.1,
             max: 1,
           }
