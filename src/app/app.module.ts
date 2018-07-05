@@ -12,7 +12,7 @@ import { ComponentsModule } from './components/components.module';
 
 import { AppComponent } from './app.component';
 
-import { AdminLayoutComponent } from './layouts/admin-layout/admin-layout.component';
+import { UserLayoutComponent } from './layouts/user-layout/user-layout.component';
 import { UploaderComponent } from './uploader/uploader.component';
 import { KeepReuseStrategy } from './route.reuse.strategy';
 
@@ -29,7 +29,7 @@ import { KeepReuseStrategy } from './route.reuse.strategy';
   ],
   declarations: [
     AppComponent,
-    AdminLayoutComponent
+    UserLayoutComponent
   ],
   providers: [
     {provide: RouteReuseStrategy, useClass: KeepReuseStrategy}

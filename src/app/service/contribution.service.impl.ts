@@ -4,11 +4,12 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http'
 import { catchError, map, tap } from 'rxjs/operators';
 import { environment } from 'environments/environment';
 import { SequenceError } from '../model/sequenceError';
+import { ContributionService } from './contribution.service';
 
 @Injectable({
   providedIn: 'root'
 })
-export class UpdateService {
+export class ContributionServiceImpl implements ContributionService {
 
   path: string = "/contribute";
 

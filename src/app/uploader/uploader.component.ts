@@ -1,14 +1,20 @@
 import { Component, OnInit } from '@angular/core';
-import { UpdateService } from '../service/file.service';
-import { MessageService } from '../service/message.service';
+import { ContributionServiceImpl } from '../service/contribution.service.impl';
+import { MessageServiceImpl } from '../service/message.service.impl';
 import { SequenceError } from '../model/sequenceError';
 import { Observable } from 'rxjs';
 import { finalize } from 'rxjs/operators';
+import { ContributionService } from '../service/contribution.service';
+import { MessageService } from '../service/message.service';
 
 @Component({
   selector: 'app-uploader',
   templateUrl: './uploader.component.html',
-  styleUrls: ['./uploader.component.scss']
+  styleUrls: ['./uploader.component.scss'],
+  providers: [
+    { provide: ContributionService, useClass: ContributionServiceImpl },
+    { provide: MessageService, useClass: MessageServiceImpl }
+  ]
 })
 export class UploaderComponent implements OnInit {
 
@@ -17,7 +23,7 @@ export class UploaderComponent implements OnInit {
   fileErrors: SequenceError[] = []
   submitted: boolean
 
-  constructor(private messenger: MessageService, private uploader: UpdateService) {
+  constructor(private messenger: MessageService, private uploader: ContributionService) {
     this.allowedFileFormats.add("text/csv");
     this.allowedFileFormats.add("application/vnd.ms-excel");
     this.allowedFileFormats.add("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");

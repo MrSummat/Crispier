@@ -1,18 +1,24 @@
 import { Component, OnInit } from '@angular/core';
-import { EvaluatorService } from '../service/evaluator.service';
-import { MessageService } from '../service/message.service';
+import { EvaluatorServiceImpl } from '../service/evaluator.service.impl';
+import { MessageServiceImpl } from '../service/message.service.impl';
 import { Evaluation } from '../model/evaluation';
-import { FileParser } from '../util/file.reader';
-import { Sequence } from '../model/chain';
+import { FileParser } from '../util/file.parser';
+import { Sequence } from '../model/sequence';
 import { isString } from 'util';
 import { isNumber } from '@ng-bootstrap/ng-bootstrap/util/util';
 import { SequenceError } from '../model/sequenceError';
 import { finalize } from 'rxjs/operators';
+import { EvaluatorService } from '../service/evaluator.service';
+import { MessageService } from '../service/message.service';
 
 @Component({
   selector: 'app-evaluator',
   templateUrl: './evaluator.component.html',
-  styleUrls: ['./evaluator.component.css']
+  styleUrls: ['./evaluator.component.css'],
+  providers: [
+    { provide: EvaluatorService, useClass: EvaluatorServiceImpl },
+    { provide: MessageService, useClass: MessageServiceImpl }
+  ]
 })
 export class EvaluatorComponent implements OnInit {
 
@@ -37,10 +43,6 @@ export class EvaluatorComponent implements OnInit {
     this.allowedFileFormats.add("text/csv");
     this.allowedFileFormats.add("application/vnd.ms-excel");
     this.allowedFileFormats.add("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-  }
-
-  ngOnInit() {
-    this.initialize()
   }
 
   // Charts
@@ -323,7 +325,7 @@ export class EvaluatorComponent implements OnInit {
 
   ///////////////////////////////////////////////////////////////////////////////////////////////////////
 
-  private initialize() {
+  ngOnInit() {
     this.chartColor = "#FFFFFF";
     this.canvas = document.getElementById("bigDashboardChart");
     this.ctx = this.canvas.getContext("2d");
