@@ -198,6 +198,9 @@ export class EvaluatorComponent implements OnInit {
         );
     }
     this.messenger.info("Evaluating file");
+    setTimeout(() => {
+      this.submitted = false; // In case all rows contained errors
+    }, 5000);
   }
 
   private rowDataIsOK(row: number, name: string, chain: string, pam: number): boolean {
