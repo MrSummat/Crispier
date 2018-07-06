@@ -18,7 +18,6 @@
     width: 260px;
     left: 0;
     z-index: 1030;
-    // COLOR
     @include sidebar-color($dark-gray);
 
     .sidebar-wrapper{
@@ -306,7 +305,6 @@
 
     .main-content{
         padding: 0 30px 30px;
-        // COMMENT  min-height: calc(100vh - 123px);
         margin-top: -30px;
     }
 

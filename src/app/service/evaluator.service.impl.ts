@@ -11,7 +11,6 @@ import { EvaluatorService } from './evaluator.service';
 })
 export class EvaluatorServiceImpl implements EvaluatorService {
 
-  // TODO: cargarlos de un fichero de configuración
   path: string = "/evaluators/"
   evaluators: Set<string> = new Set<string>([
     "scc",
@@ -38,21 +37,6 @@ export class EvaluatorServiceImpl implements EvaluatorService {
 
     return evaluations.pipe(combineAll());
 
-    // return forkJoin(
-    //   this.http.get<Evaluation>(environment.apiUrl + this.evaluators, {params : params})
-    //   .pipe(
-    //     map((data) => new Evaluation(data['name'], data['score'], data['assessment'])),
-    //     // tap(() => this.log("Coeficients obtained from server: " + this.path)),
-    //     tap((result) => console.log(result)),
-    //     catchError(this.handleError<Evaluation>('EvaluatorService: evaluate'))
-    //   )
-    // );
-
-    // return this.http.get<Coeficient[]>(environment.apiUrl + path)
-    //   .pipe(
-    //     tap(coeficients => this.log("Coeficients obtained from server: " + path)),
-    //     catchError(this.handleError<Coeficient[]>('getCoeficients'))
-    //   );
   }
 
   /**
@@ -64,13 +48,10 @@ export class EvaluatorServiceImpl implements EvaluatorService {
   private handleError<T>(operation = 'operation', result?: T) {
     return (error: any): Observable<T> => {
 
-      // TODO: send the error to remote logging infrastructure
       console.error(error); // log to console instead
 
-      // TODO: better job of transforming error for user consumption
       this.log(`${operation} failed: ${error.message}`);
 
-      // Let the app keep running by returning an empty result.
       return of(result as T);
     };
   }

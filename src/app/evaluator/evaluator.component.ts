@@ -261,7 +261,6 @@ export class EvaluatorComponent implements OnInit {
     let post = this.shownSequence.chain.substring(this.shownSequence.pam + 2)
 
     //Labels
-    // COMMENT Workaround for labels -.-'
     let labels = this.shownSequence.evaluations.map(evaluation => evaluation.evaluator)
     this.lineChartGradientsNumbersLabels.length = 0;
     labels.forEach(label => {
@@ -269,7 +268,6 @@ export class EvaluatorComponent implements OnInit {
     });
 
     // Workaround to refresh the data
-    // COMMENT if there were more than one
     // let clone = JSON.parse(JSON.stringify(this.lineChartGradientsNumbersData));
     let tmp = this.lineChartGradientsNumbersData[0]
     tmp.data = this.shownSequence.evaluations.map(evaluation => evaluation.score)
@@ -284,7 +282,6 @@ export class EvaluatorComponent implements OnInit {
     if (post)
       label += post.toLocaleUpperCase()
 
-    // COMMENT Workaround for labels -.-'
     let letters = label.split("")
     this.lineBigDashboardChartLabels.length = 0;
 
@@ -317,7 +314,6 @@ export class EvaluatorComponent implements OnInit {
       chartData[j++] = data;
     }
 
-    // COMMENT Workaround for data :/
     let clone = JSON.parse(JSON.stringify(this.lineBigDashboardChartData));
     this.shownSequence.evaluations.forEach((evaluation: Evaluation, i: number) => {
       clone[i].label = evaluation.evaluator

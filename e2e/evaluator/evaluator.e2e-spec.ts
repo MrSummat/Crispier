@@ -14,7 +14,5 @@ describe('Crispier - Evaluator', () => {
 
   it("should display a danger warning if no chain before NGG is introduced and other is", () => {
     page.navigateTo();
-    // page.fillN("C"); // TODO
-    // expect(page.)
   });
 });
